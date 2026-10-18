@@ -23,6 +23,8 @@ curl http://localhost:8000/health
 
 `DATABASE_URL` задаёт SQLAlchemy URL базы; `BOT_TOKEN` — токен Telegram-бота; `TOKEN_SECRET` — секрет HMAC-SHA256; `ADMIN_API_KEY` — ключ заголовка `X-Admin-Key`; `ORGANIZER_TELEGRAM_IDS` — разделённый запятыми список Telegram ID организаторов; `CHECKIN_POINTS`, `BONUS_MIN_POINTS`, `BONUS_MAX_POINTS` задают правила начисления. `RUN_TELEGRAM_BOT=1` включает polling-бота в lifespan FastAPI (для API-only локальных тестов можно указать `0`).
 
+Для создания демонстрационного гостя после миграций можно выполнить `python -m scripts.seed`; его имя, категория и Telegram ID берутся из `SEED_GUEST_NAME`, `SEED_GUEST_CATEGORY` и `SEED_GUEST_TELEGRAM_ID`.
+
 ## Архитектура
 
 - `app/models.py` содержит SQLAlchemy-модели гостей, check-in и журнала транзакций.
@@ -55,7 +57,7 @@ curl --get http://localhost:8000/guests/by-token --data-urlencode 'token=qr1....
 
 Локально установите зависимости `pip install -e '.[dev]'`, затем выполните `pytest`. Для миграций используйте `alembic upgrade head`; URL берётся из `DATABASE_URL`.
 
-Тесты проверяют подпись и tamper-resistance токенов, round-trip QR, авторизацию организатора и администратора, одноразовость check-in, диапазон бонусов и сумму журнала начислений. Перед публикацией также выполняется smoke-check Compose и `/health`.
+Тесты проверяют подпись и tamper-resistance токенов, round-trip QR, авторизацию организатора и API-ключа, одноразовость check-in, диапазон бонусов и сумму журнала начислений. Перед публикацией также выполняется smoke-check Compose и `/health`.
 
 ## Использование ИИ
 
