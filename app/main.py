@@ -54,4 +54,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     return application
 
 
-app = create_app()
+def _build_default_app() -> FastAPI:
+    """Build the production app while keeping module imports test-friendly."""
+    if os.getenv("DATABASE_URL"):
+        return create_app()
+
+    application = FastAPI(title="QR Omissions", version="0.1.0")
+
+    @application.get("/health")
+    def unavailable_health() -> dict[str, str]:
+        return {"status": "configuration_required"}
+
+    return application
+
+
+app = _build_default_app()
