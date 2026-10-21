@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -26,7 +24,7 @@ def build_router(settings: Settings, session_factory=None) -> APIRouter:
         finally:
             db.close()
 
-    def require_admin(x_admin_key: Annotated[str | None, Header()] = None) -> None:
+    def require_admin(x_admin_key: str | None = Header(default=None)) -> None:
         if not api_key_matches(x_admin_key, settings.admin_api_key):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin key")
 
@@ -48,8 +46,8 @@ def build_router(settings: Settings, session_factory=None) -> APIRouter:
     @router.post("/admin/guests", response_model=GuestResponse, status_code=status.HTTP_201_CREATED)
     def create_guest(
         payload: GuestCreate,
-        _: Annotated[None, Depends(require_admin)],
-        db: Annotated[Session, Depends(session)],
+        _: None = Depends(require_admin),
+        db: Session = Depends(session),
     ) -> GuestResponse:
         service = GuestService(
             db,
@@ -90,12 +88,12 @@ def build_router(settings: Settings, session_factory=None) -> APIRouter:
 
     @router.get("/guests/by-token", response_model=GuestCardResponse)
     def guest_card_by_query(
-        token: Annotated[str, Query(min_length=1)], db: Annotated[Session, Depends(session)]
+        token: str = Query(..., min_length=1), db: Session = Depends(session)
     ) -> GuestCardResponse:
         return get_card(token, db)
 
     @router.get("/guests/{token}", response_model=GuestCardResponse)
-    def guest_card_by_path(token: str, db: Annotated[Session, Depends(session)]) -> GuestCardResponse:
+    def guest_card_by_path(token: str, db: Session = Depends(session)) -> GuestCardResponse:
         return get_card(token, db)
 
     return router
